@@ -6,10 +6,10 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 
 * What format will the tropical data identifiers be in (if we include these to link to trop data)?
+ * Enumeration unit = regex(., '^[0-9]{5}$')
+ * Cluster = regex(., '^[0-9]{3}$')
+   
 * Which fields should be required (i.e. so you can’t submit a form until they’re completed? 
-* What’s the protocol for people with zero vision? i.e. if you are blind, lost an eye etc? Just do a null test? 
-* What is the ‘minimal’ version? I hadn’t yet implemented the minimal logic because I can’t tell the difference between standard and minimal from the original template forms.
-* Data entry will be quicker if you change the "SF1b. How long ago did you have surgery to replace glasses or contact lenses?” To a select_one and use ranges like 0-5 years, 6-15 years, 15+ years or similar. 
 * What’s the equivalent to the pinhole test in the Peek version? 
 * I don’t know what to draw for the pinhole test. i.e. there’s diagrams to help with near/far, uncorrected/corrected.
 * If you wanted to, we could programme the system to automatically know where the phone is (I.e. using geofencing). This would be based on providing spatial polygons and using GPS on device to identify current locations. There’s an explanation of this here : https://forum.getodk.org/t/geofencing-in-odk-forms/38378
@@ -20,8 +20,17 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
-### v0.32
-* 
+### Upcoming - v0.32
+* To do
+ * Add Enumeration unit to cascading select: regex(., '^[0-9]{5}$')
+ * Add cluster to cascading select : regex(., '^[0-9]{5}$')
+ * Add a geopoint question to locate handset at form submission - Done
+ * Make visual guides for pinhole test
+
+* Done 
+ * Makes 6/18, 6/60 and 3/60 Snellen chart testing happen only for 'standard' and not for 'minimal' method - Done
+ * Changes "How long ago did you have surgery to replace glasses or contact lenses?” to a select_one and use ranges 0-5, 6-10, 11-15, 16-20, 21+ years - Done
+ 
 
 ### v0.31 
 
