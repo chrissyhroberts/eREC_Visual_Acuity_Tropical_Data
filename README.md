@@ -4,17 +4,9 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Issues
 
-
-* What format will the tropical data identifiers be in (if we include these to link to trop data)?
- * Enumeration unit = regex(., '^[0-9]{5}$')
- * Cluster = regex(., '^[0-9]{3}$')
-   
 * Which fields should be required (i.e. so you can’t submit a form until they’re completed? 
 * What’s the equivalent to the pinhole test in the Peek version? 
-* I don’t know what to draw for the pinhole test. i.e. there’s diagrams to help with near/far, uncorrected/corrected.
 * If you wanted to, we could programme the system to automatically know where the phone is (I.e. using geofencing). This would be based on providing spatial polygons and using GPS on device to identify current locations. There’s an explanation of this here : https://forum.getodk.org/t/geofencing-in-odk-forms/38378
-* For referrals, it may be worth capturing the location of the handset when the data is collected. Addresses could be a bit vague? 
-* Alternatively, could use a map to locate home. 
 * Names like Zone 1, zone 2 are used more than once in Ethiopia and because they are not unique, they crash the cascading select of regions
 * Need to set the methods (Peek, Standard, Minimal) used by each region. Currently randomised. 
 
