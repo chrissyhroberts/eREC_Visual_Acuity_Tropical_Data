@@ -20,17 +20,23 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
-### Upcoming - v0.32
+
 #### * To do
  * Add Enumeration unit to cascading select: regex(., '^[0-9]{5}$')
  * Add cluster to cascading select : regex(., '^[0-9]{5}$')
  * Make visual guides for pinhole test
 
 #### * Done 
- * Makes 6/18, 6/60 and 3/60 Snellen chart testing happen only for 'standard' and not for 'minimal' method - Done
- * Changes "How long ago did you have surgery to replace glasses or contact lenses?” to a select_one and use ranges 0-5, 6-10, 11-15, 16-20, 21+ years - Done
- * Adds a geopoint question to locate handset at form submission - Done
 
+
+### v0.32
+
+* Corrects an issue where NV distance should have been 0.4 m but was 0.45 m in visual assistance png files
+* Removes participant IDs as these will not be used in production
+* Adds a splash screen with logo cluster, title and version number
+* Makes 6/18, 6/60 and 3/60 Snellen chart testing happen only for 'standard' and not for 'minimal' method
+* Changes "How long ago did you have surgery to replace glasses or contact lenses?” to a select_one and use ranges 0-5, 6-10, 11-15, 16-20, 21+ years
+* Adds a geopoint question to locate handset at form submission
 
 ### v0.31 
 
