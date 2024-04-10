@@ -18,6 +18,10 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
+### v0.34
+
+* Updates the referrals so that refferal is indicated when pinhole Snellen test vision is lower than 6/12 in both eyes OR when pinhole Peek test logMar > 0.3 in both eyes.
+  
 ### v0.33
 
 * Adds visual guides for pinhole test
