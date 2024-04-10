@@ -5,22 +5,25 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 ## Issues
 
 * Which fields should be required (i.e. so you can’t submit a form until they’re completed? 
-* What’s the equivalent to the pinhole test in the Peek version? 
 * If you wanted to, we could programme the system to automatically know where the phone is (I.e. using geofencing). This would be based on providing spatial polygons and using GPS on device to identify current locations. There’s an explanation of this here : https://forum.getodk.org/t/geofencing-in-odk-forms/38378
 * Names like Zone 1, zone 2 are used more than once in Ethiopia and because they are not unique, they crash the cascading select of regions
 * Need to set the methods (Peek, Standard, Minimal) used by each region. Currently randomised. 
 
-## Change Log
 
 
 #### * To do
  * Add Enumeration unit to cascading select: regex(., '^[0-9]{5}$')
  * Add cluster to cascading select : regex(., '^[0-9]{5}$')
- * Make visual guides for pinhole test
+ 
 
-#### * Done 
+## Change Log
 
+### v0.33
 
+* Adds visual guides for pinhole test
+* Adds updated versions of all visual guides
+* Adds pinhole distance vision test for Peek tests
+  
 ### v0.32
 
 * Corrects an issue where NV distance should have been 0.4 m but was 0.45 m in visual assistance png files
