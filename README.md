@@ -18,6 +18,13 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
+### v0.35
+
+* Adds audit trail, allowing for precise time-stamping of enumerator activity
+* Adds requirement for user to identify themselves when starting a new form submission
+* Updates testing so that corrected near VA test is used only when the uncorrected near VA in both eyes are worse than N6
+* Fixes an error where the form crashed when districts with identical names existed in different regions or countries
+
 ### v0.34
 
 * Updates the referrals so that refferal is indicated when pinhole Snellen test vision is lower than 6/12 in both eyes OR when pinhole Peek test logMar > 0.3 in both eyes.
