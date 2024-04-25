@@ -12,19 +12,17 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 
 #### * To do
- * Add Enumeration unit to cascading select: regex(., '^[0-9]{5}$')
- * Add cluster to cascading select : regex(., '^[0-9]{5}$')
- * Deactivates regions not in use in initial study
- * Adds v1.00 setup guide (private)
-
+ 
 ## Change Log
 
-### v0.36
+### v1.00
 
 * Changes choice of Peek, Snellen (Standard) and Snellen (Rapid) to a select one with default Peek
 * Makes all demographics required
 * Changes default capture accuracy on geopoint to 10m instead of 5m
- 
+* Reduces complexity of choice filters when selecting countries and clusters (removes cascading select for region, district etc.)
+* Adds v1.00 setup guide (private)
+
 ### v0.35
 
 * Adds audit trail, allowing for precise time-stamping of enumerator activity
