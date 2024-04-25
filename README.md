@@ -23,7 +23,7 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 * Changes choice of Peek, Snellen (Standard) and Snellen (Rapid) to a select one with default Peek
 * Makes all demographics required
-* 
+* Changes default capture accuracy on geopoint to 10m instead of 5m
  
 ### v0.35
 
