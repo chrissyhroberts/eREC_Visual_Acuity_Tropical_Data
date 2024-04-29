@@ -4,16 +4,16 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Issues
 
-* Which fields should be required (i.e. so you can’t submit a form until they’re completed? 
-* If you wanted to, we could programme the system to automatically know where the phone is (I.e. using geofencing). This would be based on providing spatial polygons and using GPS on device to identify current locations. There’s an explanation of this here : https://forum.getodk.org/t/geofencing-in-odk-forms/38378
-* Names like Zone 1, zone 2 are used more than once in Ethiopia and because they are not unique, they crash the cascading select of regions
-* Need to set the methods (Peek, Standard, Minimal) used by each region. Currently randomised. 
-
-
+* None as of 2024-04-29
 
 #### * To do
- 
+
+* Nothing at present
+
 ## Change Log
+
+### v1.01
+* Adds Peek Vision logo to the Splash Screen via logo_cluster.png
 
 ### v1.00
 
