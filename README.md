@@ -12,6 +12,10 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
+### v1.05
+
+* Fixes 'can't see' button by type coercion to strings in the intent action. 
+
 ### v1.04
 
 * Activates 'can't see' button
