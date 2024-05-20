@@ -12,6 +12,14 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
+### v1.04
+
+* Activates 'can't see' button
+
+### v1.02, v1.03 
+
+* Iterative attempts to get 'can't see button active'.
+
 ### v1.01
 * Adds Peek Vision logo to the Splash Screen via logo_cluster.png
 
