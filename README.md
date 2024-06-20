@@ -12,6 +12,14 @@ Files to support the eREC inclusion of visual acuity data in Tropical Data surve
 
 ## Change Log
 
+### v1.06
+
+* Adds new option for a Peek (Rapid) test. This implements a new class of test where the participant either passes or fails distance test at LogMAR 0.3 and near test at LogMAR 0.27
+* Removes redundant `pass` field for the full Peek test
+* Implements `pass` field for the Peek (Rapid) test, without recording LogMAR
+* Updates referrals to include logic for referral when both left and right pinhole test fails at LogMAR 0.3
+* Updates internal logic to make corrected, pinhole and additional tests happen when threshold tests fail in both eyes when using the Peek (Rapid) protocol. 
+
 ### v1.05
 
 * Fixes 'can't see' button by type coercion to strings in the intent action. 
