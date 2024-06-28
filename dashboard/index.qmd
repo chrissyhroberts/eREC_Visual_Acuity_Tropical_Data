@@ -226,7 +226,7 @@ df<- df_raw %>%
 ## Daily submissions (Nigeria)
 
 # Define the date range
-start_date <- as.Date("2024-04-01")
+start_date <- as.Date("2024-06-23")
 end_date <- as.Date("2024-09-01")
 
 # Create a sequence of all dates within the range
@@ -297,7 +297,7 @@ leaflet(df) %>%
 ```{r,warning=F,message=F,echo=F}
 
 # Define the date range
-start_date <- as.Date("2024-04-01")
+start_date <- as.Date("2024-06-23")
 end_date <- as.Date("2024-09-01")
 
 # Create a sequence of all dates within the range
