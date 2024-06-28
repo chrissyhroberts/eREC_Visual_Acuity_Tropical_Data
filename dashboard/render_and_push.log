@@ -493,3 +493,7 @@ processing file: index.qmd
 Output created: index.html
 
 Render successful at Fri 28 Jun 2024 14:33:14 BST
+[main 2c3812a] Automated render and push
+ 3 files changed, 127 insertions(+), 44 deletions(-)
+To https://github.com/chrissyhroberts/eREC_Visual_Acuity_Tropical_Data.git
+   f73ceee..2c3812a  main -> main
