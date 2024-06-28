@@ -3,7 +3,7 @@
 Files to support the eREC inclusion of visual acuity data in Tropical Data surveys
 
 ## Monitoring
-Visit the [Dashboard](dashboard/index.html)
+Visit the [Dashboard](./dashboard/index.html)
 
 ## Issues
 
