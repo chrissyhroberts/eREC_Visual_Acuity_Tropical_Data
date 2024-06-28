@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Start the SSH agent and add your SSH key
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa
+#eval "$(ssh-agent -s)"
+#ssh-add ~/.ssh/id_rsa
 
 # Ensure the PATH includes /usr/sbin
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
