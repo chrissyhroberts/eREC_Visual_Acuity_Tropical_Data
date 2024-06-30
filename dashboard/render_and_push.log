@@ -1011,3 +1011,12 @@ processing file: index.qmd
 Output created: index.html
 
 Render successful at Sun 30 Jun 2024 17:15:12 BST
+[main 712cd4e] Automated render and push
+ 3 files changed, 132 insertions(+), 42 deletions(-)
+To https://github.com/chrissyhroberts/eREC_Visual_Acuity_Tropical_Data.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/chrissyhroberts/eREC_Visual_Acuity_Tropical_Data.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
