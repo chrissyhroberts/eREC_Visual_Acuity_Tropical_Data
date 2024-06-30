@@ -194,6 +194,8 @@ df_raw<-ruODK::odata_submission_get(expand = T,parse = T,verbose = F) %>%
 ```{r, include=F}
 
 df<- df_raw %>%  
+  filter(system_submitter_name != "testing") %>% 
+  filter(system_submitter_name != "Chrissy h. Roberts (User)") %>% 
   rename (
      age = "person_info_sf0a",
      sex = "person_info_sf0b",
