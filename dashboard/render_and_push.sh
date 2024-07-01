@@ -40,3 +40,13 @@ if [ $? -eq 0 ]; then
       echo "Push to GitHub successful at $(date)" >> $LOGFILE
     else
       echo "Git push failed at $(date)" >> $LOGFILE
+      exit 1
+    fi
+  else
+    echo "Git commit failed at $(date)" >> $LOGFILE
+    exit 1
+  fi
+else
+  echo "Quarto render failed at $(date)" >> $LOGFILE
+  exit 1
+fi
