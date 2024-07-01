@@ -17,3 +17,6 @@ Setup_Guide.docx
 .DS_Store
 /dashboard/media
 dashboard/render_and_push.log
+dashboard/render_and_push.log
+dashboard/.RData
+dashboard/.Rhistory
