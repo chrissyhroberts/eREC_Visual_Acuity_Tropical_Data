@@ -225,7 +225,9 @@ df<- df_raw %>%
 ## Top Pane
 
 ```{r,warning=F,message=F,echo=F}
-## Daily submissions (Nigeria)
+# Load necessary libraries
+library(dplyr)
+library(plotly)
 
 # Define the date range
 start_date <- as.Date("2024-06-23")
@@ -239,6 +241,9 @@ daily_counts <- df %>%
   filter(person_location_country == "NIGERIA") %>% 
   group_by(person_location_cluster, splash_form_created_date) %>%
   summarise(n = n(), .groups = 'drop')
+
+# Calculate the total number of submissions
+total_submissions <- sum(daily_counts$n, na.rm = TRUE)
 
 # Create a data frame with all dates and clusters to ensure all dates are represented
 expanded_dates <- expand.grid(splash_form_created_date = all_dates,
@@ -256,7 +261,7 @@ p <- plot_ly(data = daily_counts,
              color = ~person_location_cluster, 
              type = 'bar') %>%
   layout(barmode = 'stack',
-         title = "Daily Submissions by Cluster (Nigeria)",
+         title = paste("Daily Submissions by Cluster (Nigeria) - Total Submissions:", total_submissions),
          xaxis = list(title = 'Date',
                       tickangle = -90,
                       tickformat = "%Y-%m-%d",
@@ -265,9 +270,9 @@ p <- plot_ly(data = daily_counts,
                       range = c(start_date, end_date)),
          yaxis = list(title = 'Number of Submissions'))
 
-
 # Render the plot
 p
+
 ```
 
 ```{r,warning=F,message=F,echo=F}
@@ -311,6 +316,9 @@ daily_counts <- df %>%
   group_by(person_location_cluster, splash_form_created_date) %>%
   summarise(n = n(), .groups = 'drop')
 
+# Calculate the total number of submissions
+total_submissions <- sum(daily_counts$n, na.rm = TRUE)
+
 # Create a data frame with all dates and clusters to ensure all dates are represented
 expanded_dates <- expand.grid(splash_form_created_date = all_dates,
                               person_location_cluster = unique(daily_counts$person_location_cluster))
@@ -325,9 +333,9 @@ p <- plot_ly(data = daily_counts,
              x = ~splash_form_created_date, 
              y = ~n, 
              color = ~person_location_cluster, 
-             type = 'bar') %>% 
+             type = 'bar') %>%
   layout(barmode = 'stack',
-         title = "Daily Submissions by Cluster (Ethiopia)",
+         title = paste("Daily Submissions by Cluster (Ethiopia) - Total Submissions:", total_submissions),
          xaxis = list(title = 'Date',
                       tickangle = -90,
                       tickformat = "%Y-%m-%d",
@@ -335,7 +343,6 @@ p <- plot_ly(data = daily_counts,
                       dtick = 7*86400000,  # One day in milliseconds
                       range = c(start_date, end_date)),
          yaxis = list(title = 'Number of Submissions'))
-
 
 # Render the plot
 p
