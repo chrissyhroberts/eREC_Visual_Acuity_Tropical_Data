@@ -24,6 +24,10 @@ library(kableExtra)
 library(plotly)
 library(leaflet)
 library(leaflet.extras2)
+library(RColorBrewer)
+library(sp)  # For creating polygons
+library(sf)  # For calculating convex hulls
+
 
 ```
 
@@ -276,38 +280,99 @@ p
 ```
 
 ```{r,warning=F,message=F,echo=F}
-# Load necessary libraries
-library(dplyr)
-library(leaflet)
-library(RColorBrewer)
 
-# Round latitude and longitude to 3 decimal places (~100 m accuracy)
+# Add jitter to the rounded latitude and longitude values
+set.seed(123)  # Set seed for reproducibility
 df <- df %>%
   mutate(
     rounded_longitude = round(location_geolocation_longitude, 3),
-    rounded_latitude = round(location_geolocation_latitude, 3)
+    rounded_latitude = round(location_geolocation_latitude, 3),
+    jittered_longitude = jitter(rounded_longitude, amount = 0.003),
+    jittered_latitude = jitter(rounded_latitude, amount = 0.003)
   )
 
 # Define a color palette for the clusters
 palette <- colorFactor(palette = brewer.pal(9, "Set1"), domain = df$person_location_cluster)
 
-# Create the leaflet map using the rounded coordinates
-leaflet(df) %>%
-  addTiles(options = tileOptions(maxZoom = 13)) %>%  # Set the maximum zoom level
+# Function to create a polygon for each cluster
+create_cluster_polygons <- function(df) {
+  clusters <- unique(df$person_location_cluster)
+  polygons <- lapply(clusters, function(cluster) {
+    cluster_points <- df %>% filter(person_location_cluster == cluster)
+    cluster_points <- cluster_points %>%
+      filter(!is.na(jittered_longitude) & !is.na(jittered_latitude))  # Filter out rows with missing coordinates
+    
+    if (nrow(cluster_points) > 0) {
+      coords <- cbind(cluster_points$jittered_longitude, cluster_points$jittered_latitude)
+      sp_points <- st_as_sf(as.data.frame(coords), coords = c("V1", "V2"), crs = 4326)
+      hull <- st_convex_hull(st_union(sp_points))
+      count <- nrow(cluster_points)
+      return(list(cluster = cluster, hull = hull, count = count))
+    } else {
+      return(NULL)
+    }
+  })
+  polygons <- Filter(Negate(is.null), polygons)  # Remove NULL elements
+  return(polygons)
+}
+
+# Create polygons for each cluster
+cluster_polygons <- create_cluster_polygons(df)
+
+
+# Sort the cluster names
+sorted_cluster_names <- sort(unique(df$person_location_cluster))
+
+
+# Create the leaflet map using the jittered coordinates
+map <- leaflet(df) %>%
+  addTiles(options = tileOptions(maxZoom = 18))
+
+# Add circle markers with clustering options
+map <- map %>%
   addCircleMarkers(
-    lng = ~rounded_longitude,
-    lat = ~rounded_latitude,
-    radius = ~location_geolocation_accuracy / 10,  # Adjust radius based on accuracy
+    lng = ~jittered_longitude,
+    lat = ~jittered_latitude,
+    radius = ~location_geolocation_accuracy / 5,  # Adjust radius based on accuracy
     color = ~palette(person_location_cluster),
-    fillOpacity = 0.5,
-    popup = ~paste("Cluster ID:", person_location_cluster),  # Add popup with cluster ID
+    fillOpacity = 0.7,
+    popup = ~paste(id),  # Add popup with cluster ID
+    group = "Circle Markers",
     clusterOptions = markerClusterOptions(
-      spiderfyOnMaxZoom = FALSE,  # Disable radial expansion
-      showCoverageOnHover = TRUE,  # Show coverage area on hover
+      spiderfyOnMaxZoom = TRUE,  # Enable radial expansion
+      showCoverageOnHover = FALSE,  # Show coverage area on hover
       zoomToBoundsOnClick = TRUE,  # Zoom to bounds when clicked
-      maxClusterRadius = 40  # Radius in pixels to cluster
+      maxClusterRadius = 200,  # Adjust this value to control clustering behavior
+      disableClusteringAtZoom = 14  # Stop clustering at this zoom level
     )
   )
+
+# Add polygons and labels to the same group as the clusters
+for (polygon_data in cluster_polygons) {
+  cluster_group <- paste("Cluster", polygon_data$cluster)
+  map <- map %>%
+    addPolygons(
+      data = polygon_data$hull,
+      color = palette(polygon_data$cluster),
+      fillOpacity = 0.3,
+      group = cluster_group,
+      label = paste(polygon_data$cluster, "(", polygon_data$count, ")"),
+      labelOptions = labelOptions(
+        noHide = FALSE,
+        direction = "auto"
+      )
+    )
+}
+
+# Add layer control to the map
+map <- map %>%
+  addLayersControl(
+    overlayGroups = c("Circle Markers", paste("Cluster", sorted_cluster_names)),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+
+# Render the map
+map
 
 ```
 
