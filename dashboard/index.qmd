@@ -283,13 +283,17 @@ p
 
 # Add jitter to the rounded latitude and longitude values
 set.seed(123)  # Set seed for reproducibility
+
+# Define a custom jitter function
+custom_jitter <- function(x, amount) {
+  x + runif(length(x), min = -amount, max = amount)
+}
+
 df <- df %>%
-  mutate(
-    jittered_longitude = jitter(location_geolocation_longitude, amount = 0.0035),
-    jittered_latitude = jitter(location_geolocation_latitude, amount = 0.0035),
-    jittered_longitude = round(jittered_longitude, 4),
-    jittered_latitude = round(jittered_latitude, 4),
-  )
+ mutate(
+  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.003),
+  jittered_latitude = custom_jitter(location_geolocation_latitude, amount = 0.003)
+)
 
 # Define a color palette for the clusters
 palette <- colorFactor(palette = brewer.pal(9, "Set1"), domain = df$person_location_cluster)
