@@ -15,6 +15,11 @@ Visit the [Dashboard](https://chrissyhroberts.github.io/eREC_Visual_Acuity_Tropi
 
 ## Change Log
 
+### v1.07
+
+* Removes `quick` flag from select country and select cluster - addresses an issue where the wrong clusters were being entered but these errors were not observable.
+* Adds /dashboard folder with qmd for performing basic monitoring of progress
+
 ### v1.06
 
 * Adds new option for a Peek (Rapid) test. This implements a new class of test where the participant either passes or fails distance test at LogMAR 0.3 and near test at LogMAR 0.27
