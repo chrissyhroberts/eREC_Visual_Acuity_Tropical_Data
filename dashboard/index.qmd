@@ -285,10 +285,10 @@ p
 set.seed(123)  # Set seed for reproducibility
 df <- df %>%
   mutate(
-    rounded_longitude = round(location_geolocation_longitude, 3),
-    rounded_latitude = round(location_geolocation_latitude, 3),
-    jittered_longitude = jitter(rounded_longitude, amount = 0.003),
-    jittered_latitude = jitter(rounded_latitude, amount = 0.003)
+    jittered_longitude = jitter(location_geolocation_longitude, amount = 0.0035),
+    jittered_latitude = jitter(location_geolocation_latitude, amount = 0.0035),
+    jittered_longitude = round(jittered_longitude, 4),
+    jittered_latitude = round(jittered_latitude, 4),
   )
 
 # Define a color palette for the clusters
@@ -343,7 +343,7 @@ map <- map %>%
       showCoverageOnHover = FALSE,  # Show coverage area on hover
       zoomToBoundsOnClick = TRUE,  # Zoom to bounds when clicked
       maxClusterRadius = 200,  # Adjust this value to control clustering behavior
-      disableClusteringAtZoom = 14  # Stop clustering at this zoom level
+      disableClusteringAtZoom = 15  # Stop clustering at this zoom level
     )
   )
 
