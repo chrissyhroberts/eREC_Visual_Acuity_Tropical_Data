@@ -1218,7 +1218,7 @@ filtered_df<-df %>%
 ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(age_group,survey_duration,fill=education_level))+
   geom_boxplot()+
   facet_grid(.~education_level) +
-  ggtitle("Survey Duration by Education and Sex (Nigeria)")+
+  ggtitle("Survey Duration by Education and Age (Nigeria)")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 )
 
