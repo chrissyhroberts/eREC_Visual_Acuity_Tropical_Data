@@ -228,7 +228,6 @@ df<-df %>%
     person_location_cluster =
       case_when(
                 id == "UUID:279805EF-7CB4-417C-A883-159C8ED62C71"~"008_KOFAR_FADA_BALANGU",
-                id == "UUID:002C2D0A-4FFA-43B1-8452-6935390F0572"~"029_MALAMAWA_I",
                 id == "UUID:ACCBD594-FD99-45B6-8D24-B2B0F54658F5"~"029_MALAMAWA_I",
                 id == "UUID:1FC3D5DA-7D4F-41E9-9B15-4B58B708E6EA"~"028_GABARI",
                 id == "UUID:574C0630-2D09-4BD7-860F-3D0F66B62CF9"~"022_GARIN_HARDO",
@@ -236,6 +235,18 @@ df<-df %>%
                 id == "UUID:F40A9852-B2F4-4E25-B2F0-A80346B03646"~"039_HADIN_UNGUWA",
                 id == "UUID:002C2D0A-4FFA-43B1-8452-6935390F0572"~"008_KOFAR_FADA_BALANGU",
                 id == "UUID:741B5AC7-9F56-4044-B9E5-CB84FA0C062B"~"023_UNG_KYARI",
+                id == "UUID:C1D602A7-9D70-4AA8-8187-C3C65FC7ABBF"~"039_HADIN_UNGUWA",
+                id == "UUID:9892EE48-7848-4E91-AF1A-99F55D355D7C"~"039_HADIN_UNGUWA",
+                id == "UUID:3A5F1248-0604-4010-8A53-7542FF3090C8"~"039_HADIN_UNGUWA",
+                id == "UUID:E4A9B437-12D2-4A33-83A4-9FD110FEDC01"~"039_HADIN_UNGUWA",
+                id == "UUID:CFAB3E06-2B08-4F28-92FB-B63D678B4A70"~"032_KAUGAMA",
+                id == "UUID:4EC429A8-B0CE-4EDB-ACC1-43E43548E596"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:9F2C38E0-1E19-4C88-9339-B78F87B4E602"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:1CA18620-CEB1-4DD2-BA3C-6A2834C72930"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:50951445-F6F7-40CF-8CFC-AFA9B1330945"~"042_AGIM_ARKI",
+                id == "UUID:EDDF5EB3-29FD-4548-AA5F-72DBB45AF5E3"~"002_KAFIN_HAUSA",
+                id == "UUID:941C31D0-7FF3-4964-A4D3-F68CC11A0019"~"002_KAFIN_HAUSA",
+                id == "UUID:587E4458-49E4-473D-9B60-A8D2BD9659BC"~"045_TOSARAWAN_MALAMA_ARKI",
 
                 TRUE ~ person_location_cluster
               ),
@@ -309,10 +320,10 @@ custom_jitter <- function(x, amount) {
   x + runif(length(x), min = -amount, max = amount)
 }
 
-df <- df %>%
+df <- df %>% filter(person_location_cluster!="") %>% 
  mutate(
-  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.003),
-  jittered_latitude = custom_jitter(location_geolocation_latitude, amount = 0.003)
+  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.0003),
+  jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.0003)
 )
 
 # Define a color palette for the clusters
