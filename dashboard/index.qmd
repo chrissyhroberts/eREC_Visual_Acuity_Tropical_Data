@@ -333,8 +333,8 @@ custom_jitter <- function(x, amount) {
 
 df <- df %>% filter(person_location_cluster!="") %>% 
  mutate(
-  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.00003),
-  jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.00003)
+  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.0003),
+  jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.0003)
 )
 
 # Define a color palette for the clusters
