@@ -1165,3 +1165,29 @@ p <- p %>%
 # Render the plot
 p
 ```
+
+
+# Extra analyses
+
+## Top Pane
+
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  mutate(age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")))
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(sex,survey_duration,fill=sex))+
+  geom_boxplot()+
+  facet_grid(.~age_group) +
+  ggtitle("Survey Duration by Age and Sex (Nigeria)")
+)
+
+```
+
+```{r}
+
+
+
+
+
+```
