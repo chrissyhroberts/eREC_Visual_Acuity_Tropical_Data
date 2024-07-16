@@ -246,6 +246,16 @@ df<-df %>%
                 id == "UUID:50951445-F6F7-40CF-8CFC-AFA9B1330945"~"042_AGIM_ARKI",
                 id == "UUID:EDDF5EB3-29FD-4548-AA5F-72DBB45AF5E3"~"002_KAFIN_HAUSA",
                 id == "UUID:941C31D0-7FF3-4964-A4D3-F68CC11A0019"~"002_KAFIN_HAUSA",
+                id == "UUID:A81DEA2D-847E-4659-9D9C-301DD61E728C"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:C07D889F-05AB-4257-94CA-EFCDD99F3784"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:4E6B832A-E121-47D1-88F0-77FA99504A19"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:C9F183E1-A19A-43BD-9D8C-BD3D2A74E26C"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:29CF5624-5EF1-4B5E-AA35-983CAC527757"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:E2CB0CE6-3A4D-47A0-B0C1-8B4EA8F5688E"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:06BC364A-DBDD-461F-984F-369A2A1417A8"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:38458415-6993-48C0-976B-CF4C420B82E9"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:E2CB0CE6-3A4D-47A0-B0C1-8B4EA8F5688E"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:E73BF45F-E148-4BD1-AD0C-843E7BF21390"~"045_TOSARAWAN_MALAMA_ARKI",
                 id == "UUID:587E4458-49E4-473D-9B60-A8D2BD9659BC"~"045_TOSARAWAN_MALAMA_ARKI",
 
                 TRUE ~ person_location_cluster
@@ -322,8 +332,8 @@ custom_jitter <- function(x, amount) {
 
 df <- df %>% filter(person_location_cluster!="") %>% 
  mutate(
-  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.0003),
-  jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.0003)
+  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.00003),
+  jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.00003)
 )
 
 # Define a color palette for the clusters
