@@ -1185,9 +1185,42 @@ ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(sex,survey_duration
 ```
 
 ```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% mutate(
+    education_level = factor(education_level,levels=c("EDUCATION_NONE","EDUCATION_PRIMARY","EDUCATION_MIDDLE","EDUCATION_HIGHSCHOOL","EDUCATION_FURTHER_HIGHER"))
+  )
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(sex,survey_duration,fill=education_level))+
+  geom_boxplot()+
+  facet_grid(.~education_level) +
+  ggtitle("Survey Duration by Education and Sex (Nigeria)")
+)
 
 
 
 
 
 ```
+
+## Bottom pane
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  mutate(
+    age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")),
+    education_level = factor(education_level,levels=c("EDUCATION_NONE","EDUCATION_PRIMARY","EDUCATION_MIDDLE","EDUCATION_HIGHSCHOOL","EDUCATION_FURTHER_HIGHER"))
+  )
+    
+  
+
+ 
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(age_group,survey_duration,fill=education_level))+
+  geom_boxplot()+
+  facet_grid(.~education_level) +
+  ggtitle("Survey Duration by Education and Sex (Nigeria)")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+)
+
+```
+
