@@ -257,7 +257,8 @@ df<-df %>%
                 id == "UUID:E2CB0CE6-3A4D-47A0-B0C1-8B4EA8F5688E"~"045_TOSARAWAN_MALAMA_ARKI",
                 id == "UUID:E73BF45F-E148-4BD1-AD0C-843E7BF21390"~"045_TOSARAWAN_MALAMA_ARKI",
                 id == "UUID:587E4458-49E4-473D-9B60-A8D2BD9659BC"~"045_TOSARAWAN_MALAMA_ARKI",
-
+                id == "UUID:056E9DFA-34D8-4903-8C1B-9C16A6DDD4EA"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:84730F3D-A7D1-4546-A65D-00FB5695FDB0"~"045_TOSARAWAN_MALAMA_ARKI",
                 TRUE ~ person_location_cluster
               ),
     person_location_cluster = as.factor(person_location_cluster)
