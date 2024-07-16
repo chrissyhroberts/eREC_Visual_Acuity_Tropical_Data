@@ -233,8 +233,13 @@ df<-df %>%
                 id == "UUID:1FC3D5DA-7D4F-41E9-9B15-4B58B708E6EA"~"028_GABARI",
                 id == "UUID:574C0630-2D09-4BD7-860F-3D0F66B62CF9"~"022_GARIN_HARDO",
                 id == "UUID:222E074D-B622-42A1-8DAF-AC208FD99485"~"058_KARUMI_BABBA",
-                id == "UUID:F40A9852-B2F4-4E25-B2F0-A80346B03646"~"039_HADIN_UNGUWA"
-              )
+                id == "UUID:F40A9852-B2F4-4E25-B2F0-A80346B03646"~"039_HADIN_UNGUWA",
+                id == "UUID:002C2D0A-4FFA-43B1-8452-6935390F0572"~"008_KOFAR_FADA_BALANGU",
+                id == "UUID:741B5AC7-9F56-4044-B9E5-CB84FA0C062B"~"023_UNG_KYARI",
+
+                TRUE ~ person_location_cluster
+              ),
+    person_location_cluster = as.factor(person_location_cluster)
           )
 
 ```
