@@ -1253,10 +1253,10 @@ print(chi_squared_result)
 
 
 ```
+## Lower panel
 
-```{r}
+```{r,warning=F,message=F,error=F}
 # Display a message about the number of referrals by each method
-message("Proportion of participants with bilateral logMAR >= 0.3")
 
 bilateral_logMAR_Peek <- df %>% 
   filter(person_location_standard_minimal_peek=="PEEK") %>% 
@@ -1327,9 +1327,10 @@ geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
 )
 ```
 
+
 ```{r}
 bilateral_logMAR_combined<-bilateral_logMAR_combined %>% filter(!is.na(bilateral_fail_uncorrected))
-summary(as.factor(bilateral_logMAR_combined$bilateral_fail_uncorrected))
+#summary(as.factor(bilateral_logMAR_combined$bilateral_fail_uncorrected))
 
 
 # Display a message about the number of referrals by each method
