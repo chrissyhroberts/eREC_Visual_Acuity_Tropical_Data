@@ -1297,7 +1297,7 @@ bilateral_logMAR_combined_results <- bilateral_logMAR_combined %>%
   distinct()
 
 ggplotly(
-ggplot(bilateral_logMAR_combined_results,aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
+ggplot(filter(bilateral_logMAR_combined_results,bilateral_fail_uncorrected=="BILATERAL_FAIL_0.3"),aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
   geom_bar(stat="identity",position="dodge")+
 geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
                 position = position_dodge(width = 0.9), 
@@ -1398,7 +1398,7 @@ bilateral_logMAR_combined_results <- bilateral_logMAR_combined %>%
   distinct()
 
 ggplotly(
-ggplot(bilateral_logMAR_combined_results,aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
+ggplot(filter(bilateral_logMAR_combined_results,bilateral_fail_uncorrected=="BILATERAL_FAIL_0.3"),aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
   geom_bar(stat="identity",position="dodge")+
 geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
                 position = position_dodge(width = 0.9), 
@@ -1442,18 +1442,55 @@ print(chi_squared_result)
 ```
 
 
-```
-#Referrals
+# Referrals
 ## Top Panel
+
+```{r}
+
+# Create a new column 'referred' based on the presence of 'referral_name'
+referrals <- df %>% 
+  mutate(referred = ifelse(is.na(referral_name), "NOT_REFERRED", "REFERRED")) %>% 
+  group_by(person_location_standard_minimal_peek) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_standard_minimal_peek, referred) %>% 
+  reframe(
+    n = n(),
+    denom = first(denom),
+    prop = n / first(denom),
+    error = conf_interval(prop, n),
+    ci_lower = prop - error,
+    ci_upper = prop + error
+  ) %>% 
+  distinct()
+
+ggplotly(
+ggplot(filter(referrals,referred=="REFERRED"),aes (person_location_standard_minimal_peek,prop,fill=referred))+
+  geom_bar(stat="identity",position="dodge")+
+geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +
+  labs(
+    x = "Person Location Standard Minimal Peek",
+    y = "Proportion",
+    fill = "Bilateral Fail Uncorrected"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("Referrals by protocol")
+)
+
+```
+
+
 ```{r}
 
 # Display a message about the number of referrals by each method
 message("Number of referrals by each method")
 
-# Create a new column 'referred' based on the presence of 'referral_name'
-df <- df %>% 
-  mutate(referred = ifelse(is.na(referral_name), "NOT_REFERRED", "REFERRED"))
-
+df<- df %>%   mutate(referred = ifelse(is.na(referral_name), "NOT_REFERRED", "REFERRED"))
 # Create a contingency table
 referral_location_table <- table(df$referred, df$person_location_standard_minimal_peek)
 
@@ -1466,5 +1503,5 @@ chi_squared_result <- chisq.test(referral_location_table)
 # Print the chi-squared test result
 print(chi_squared_result)
 
-
 ```
+
