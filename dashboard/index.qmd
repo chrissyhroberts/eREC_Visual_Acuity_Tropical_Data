@@ -1228,6 +1228,19 @@ ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(age_group,survey_du
 
 ```
 
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  mutate(age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")))
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(person_location_standard_minimal_peek,survey_duration,fill=person_location_standard_minimal_peek))+
+  geom_boxplot()+
+  facet_grid(.~age_group) +
+  ggtitle("Survey Duration by Age and Protocol (Nigeria)")
+)
+
+```
+
 # Referrals
 ## Top panel
 ```{r}
