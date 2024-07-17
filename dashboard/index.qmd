@@ -1312,7 +1312,8 @@ geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
     axis.text.x = element_text(angle = 45, hjust = 1),
     plot.title = element_text(hjust = 0.5)
   ) +
-  ggtitle("DV by Person Location and Bilateral LogMAR >=0.3")
+  ggtitle("DV by Person Location and Bilateral LogMAR >=0.3")+
+  ylim(0,1)
 )
 ```
 
@@ -1413,7 +1414,8 @@ geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
     axis.text.x = element_text(angle = 45, hjust = 1),
     plot.title = element_text(hjust = 0.5)
   ) +
-  ggtitle("NV by Person Location and Bilateral LogMAR >=0.3")
+  ggtitle("NV by Person Location and Bilateral LogMAR >=0.3")+
+  ylim(0,1)
 )
 ```
 
