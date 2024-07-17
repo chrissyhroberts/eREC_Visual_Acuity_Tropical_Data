@@ -475,7 +475,11 @@ p
 
 # Filter the data
 filtered_df <- df %>% 
-  filter(survey_duration < 3600)
+  filter(presents_with_near_vision_correction == "NO",
+         presents_with_distance_vision_correction == "NO",
+         survey_duration < 3600)
+
+  
 
 p <- plot_ly() %>%
   # Add the violin plot
@@ -1221,6 +1225,130 @@ ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(age_group,survey_du
   ggtitle("Survey Duration by Education and Age (Nigeria)")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 )
+
+```
+
+# Referrals
+## Top panel
+```{r}
+
+# Display a message about the number of referrals by each method
+message("Number of referrals by each method")
+
+# Create a new column 'referred' based on the presence of 'referral_name'
+df <- df %>% 
+  mutate(referred = ifelse(is.na(referral_name), "NOT_REFERRED", "REFERRED"))
+
+# Create a contingency table
+referral_location_table <- table(df$referred, df$person_location_standard_minimal_peek)
+
+# Print the contingency table
+print(referral_location_table)
+
+# Perform the chi-squared test
+chi_squared_result <- chisq.test(referral_location_table)
+
+# Print the chi-squared test result
+print(chi_squared_result)
+
+
+```
+
+```{r}
+# Display a message about the number of referrals by each method
+message("Proportion of participants with bilateral logMAR >= 0.3")
+
+bilateral_logMAR_Peek <- df %>% 
+  filter(person_location_standard_minimal_peek=="PEEK") %>% 
+  select(id,person_location_standard_minimal_peek,peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar,peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar) %>%
+  mutate(
+    peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar = as.numeric(as.character(peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar)),
+    peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar =  as.numeric(as.character(peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar)), 
+    bilateral_fail_uncorrected = case_when(
+      
+      peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar>=0.3 & peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar >=0.3 ~ "BILATERAL_FAIL_0.3",
+    peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar<0.3 | peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar <0.3 ~ "PASS")
+    )
+
+  
+bilateral_logMAR_Peekminimal <- df %>% 
+  filter(person_location_standard_minimal_peek=="PEEK_MINIMAL") %>% 
+  select(id,person_location_standard_minimal_peek,peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass,peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass) %>%
+  mutate(
+    bilateral_fail_uncorrected = case_when(
+      peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == FALSE & peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == FALSE ~ "BILATERAL_FAIL_0.3",
+      
+       peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == "UNDEFINED" & peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == "UNDEFINED" ~ "BILATERAL_FAIL_0.3",
+      peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == TRUE | peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == TRUE ~ "PASS"
+    )
+        
+          )
+
+bilateral_logMAR_combined <- bind_rows(bilateral_logMAR_Peek,bilateral_logMAR_Peekminimal)
+
+
+# Function to calculate confidence interval
+conf_interval <- function(prop, n, confidence = 0.95) {
+  error <- qnorm((1 + confidence) / 2) * sqrt((prop * (1 - prop)) / n)
+  return(error)
+}
+
+bilateral_logMAR_combined_results <- bilateral_logMAR_combined %>% 
+  group_by(person_location_standard_minimal_peek) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_standard_minimal_peek, bilateral_fail_uncorrected) %>% 
+  reframe(
+    n = n(),
+    denom = first(denom),
+    prop = n / first(denom),
+    error = conf_interval(prop, n),
+    ci_lower = prop - error,
+    ci_upper = prop + error
+  ) %>% 
+  distinct()
+
+ggplotly(
+ggplot(bilateral_logMAR_combined_results,aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
+  geom_bar(stat="identity",position="dodge")+
+geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +
+  labs(
+    x = "Person Location Standard Minimal Peek",
+    y = "Proportion",
+    fill = "Bilateral Fail Uncorrected"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("Proportion with Confidence Intervals by Person Location and Bilateral Fail Status (LogMAR >=0.3)")
+)
+```
+
+```{r}
+bilateral_logMAR_combined<-bilateral_logMAR_combined %>% filter(!is.na(bilateral_fail_uncorrected))
+summary(as.factor(bilateral_logMAR_combined$bilateral_fail_uncorrected))
+
+
+# Display a message about the number of referrals by each method
+message("Number of bilateral DV fails (LogMAR>=0.3) by each method")
+
+# Create a new column 'referred' based on the presence of 'referral_name'
+
+# Create a contingency table
+referral_location_table <- table(bilateral_logMAR_combined$bilateral_fail_uncorrected, bilateral_logMAR_combined$person_location_standard_minimal_peek)
+
+# Print the contingency table
+print(referral_location_table)
+
+# Perform the chi-squared test
+chi_squared_result <- chisq.test(referral_location_table)
+
+# Print the chi-squared test result
+print(chi_squared_result)
+
 
 ```
 
