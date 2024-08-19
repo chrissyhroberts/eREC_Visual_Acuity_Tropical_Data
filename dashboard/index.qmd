@@ -983,7 +983,7 @@ p
 
 ```
 
-```{r,echo=FALSE, warning=FALSE ,message = F}
+```{r,echo=FALSE, warning=FALSE, message = F}
 
 # Calculate proportions and standard error
 result_df <- df %>% 
