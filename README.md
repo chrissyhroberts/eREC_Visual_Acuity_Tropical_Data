@@ -11,11 +11,18 @@ Visit the [Dashboard](https://chrissyhroberts.github.io/eREC_Visual_Acuity_Tropi
 
 #### * To do
 
-* Nothing at present
+* Update list of clusters for Ethiopia
+  
+## v2.01
+* Implements new tests for Ethiopian arm of study
+* Randomises individual participants to the standard or rapid protocols with 50% probability
+* Removes the Snellen chart tests as these will not be used
+* Changes the NV test to operate on both eyes simultaneously (Binocular)
+* Creates new images for binocular NV tests
 
-## Change Log
+## Change Log (eREC_Examination_Form)
 
-### v1.07
+### v1.07 (FINAL)
 
 * Removes `quick` flag from select country and select cluster - addresses an issue where the wrong clusters were being entered but these errors were not observable.
 * Adds /dashboard folder with qmd for performing basic monitoring of progress
