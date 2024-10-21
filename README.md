@@ -11,7 +11,8 @@ Visit the [Dashboard](https://chrissyhroberts.github.io/eREC_Visual_Acuity_Tropi
 
 #### * To do
 
-* Update list of clusters for Ethiopia
+## v2.02
+* Updates list of clusters for Ethiopia
   
 ## v2.01
 * Implements new tests for Ethiopian arm of study
