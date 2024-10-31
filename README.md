@@ -11,6 +11,9 @@ Visit the [Dashboard](https://chrissyhroberts.github.io/eREC_Visual_Acuity_Tropi
 
 #### * To do
 
+## v2.03
+* Removes audit requirement for enumerator name which is not working on ODK Central due to lack of inclusion in csv and no end-point for API
+* Adds simple requirement question for enumerator name. 
 ## v2.02
 * Updates list of clusters for Ethiopia
   
