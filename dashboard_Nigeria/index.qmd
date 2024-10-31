@@ -1,0 +1,1533 @@
+---
+title: "eREC Monitoring"
+author: "`r Sys.time()`"
+date: "`r Sys.Date()`"
+format:
+  dashboard:
+    self-contained: true
+    sidebar: true
+    navbar: true
+    width: 240
+---
+
+```{r warning=FALSE, include=FALSE}
+########################################################################################
+# Load libraries required for analysis
+########################################################################################
+library(ruODK)
+library(tidyverse)
+library(ComplexUpset)
+library(lubridate)
+library(tidyverse)
+library(htmlTable)
+library(kableExtra)
+library(plotly)
+library(leaflet)
+library(leaflet.extras2)
+library(RColorBrewer)
+library(sp)  # For creating polygons
+library(sf)  # For calculating convex hulls
+  
+
+```
+
+```{r,echo=F,message=F,warning=F, include=FALSE}
+
+########################################################################################
+#connect to server and download current data
+########################################################################################
+# make any changes to environment file
+
+readRenviron("/Users/icrucrob/.Renviron")
+
+ruODK::ru_setup(
+  url = "https://central.lshtm.ac.uk",
+  pid = "135",
+  fid = "eREC_Examination_Form",
+  un = Sys.getenv("ODKC_UN_yahoo"),
+  pw = Sys.getenv("ODKC_PW_yahoo"),
+  tz = "Europe/London",
+
+  verbose = TRUE
+)
+
+# get form schema
+fq<-ruODK::form_schema()
+
+# download submissions 
+# select only useful variables
+# Remove extraneous fields by removing 'structure' fields
+
+df_raw<-ruODK::odata_submission_get(expand = T,parse = T,verbose = F) %>% 
+  ruODK::handle_ru_datetimes(form_schema = fq) %>% 
+  ruODK::odata_submission_rectangle(names_sep = "_") %>% 
+  select (
+  "splash_form_created_timestamp"                                                      ,
+  "splash_form_created_date"                                                           ,
+  "splash_form_finalised_timestamp"                                                    ,
+  "person_info_sf0a"                                                                   ,
+  "person_info_sf0b"                                                                   ,
+  "person_info_sf0c"                                                                   ,
+  "person_info_sf2b"                                                                   ,
+  "person_info_sf2c"                                                                   ,
+  "person_info_sf1a"                                                                   ,
+  "person_info_sf1b"                                                                   ,
+  "person_location_country"                                                            ,
+  "person_location_cluster"                                                            ,
+  "person_location_standard_minimal_peek"                                              ,
+  "peek_visual_acuity_tests_peek_uncorrected_right_eye_label"                          ,
+  "peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar"                        ,
+  "peek_visual_acuity_tests_peek_uncorrected_right_eye_lux"                            ,
+  "peek_visual_acuity_tests_peek_uncorrected_left_eye_label"                           ,
+  "peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar"                         ,
+  "peek_visual_acuity_tests_peek_uncorrected_left_eye_lux"                             ,
+  "peek_visual_acuity_tests_peek_corrected_right_eye_label"                            ,
+  "peek_visual_acuity_tests_peek_corrected_right_eye_log_mar"                          ,
+  "peek_visual_acuity_tests_peek_corrected_right_eye_lux"                              ,
+  "peek_visual_acuity_tests_peek_corrected_left_eye_label"                             ,
+  "peek_visual_acuity_tests_peek_corrected_left_eye_log_mar"                           ,
+  "peek_visual_acuity_tests_peek_corrected_left_eye_lux"                               ,
+  "peek_visual_acuity_tests_peek_dv_pinhole_right_eye_label"                           ,
+  "peek_visual_acuity_tests_peek_dv_pinhole_right_eye_log_mar"                         ,
+  "peek_visual_acuity_tests_peek_dv_pinhole_right_eye_lux"                             ,
+  "peek_visual_acuity_tests_peek_dv_pinhole_left_eye_label"                            ,
+  "peek_visual_acuity_tests_peek_dv_pinhole_left_eye_log_mar"                          ,
+  "peek_visual_acuity_tests_peek_dv_pinhole_left_eye_lux"                              ,
+  "peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_label"                      ,
+  "peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_log_mar"                    ,
+  "peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_lux"                        ,
+  "peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_label"                       ,
+  "peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_log_mar"                     ,
+  "peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_lux"                         ,
+  "peek_visual_acuity_tests_peek_nva_corrected_right_eye_label"                        ,
+  "peek_visual_acuity_tests_peek_nva_corrected_right_eye_log_mar"                      ,
+  "peek_visual_acuity_tests_peek_nva_corrected_right_eye_lux"                          ,
+  "peek_visual_acuity_tests_peek_nva_corrected_left_eye_label"                         ,
+  "peek_visual_acuity_tests_peek_nva_corrected_left_eye_log_mar"                       ,
+  "peek_visual_acuity_tests_peek_nva_corrected_left_eye_lux"                           ,
+  "peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_label"              ,
+  "peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass"               ,
+  "peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_lux"                ,
+  "peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_label"               ,
+  "peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass"                ,
+  "peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_lux"                 ,
+  "peek_visual_acuity_tests_rapid_peek_corrected_right_eye_rapid_label"                ,
+  "peek_visual_acuity_tests_rapid_peek_corrected_right_eye_rapid_pass"                 ,
+  "peek_visual_acuity_tests_rapid_peek_corrected_right_eye_rapid_lux"                  ,
+  "peek_visual_acuity_tests_rapid_peek_corrected_left_eye_rapid_label"                 ,
+  "peek_visual_acuity_tests_rapid_peek_corrected_left_eye_rapid_pass"                  ,
+  "peek_visual_acuity_tests_rapid_peek_corrected_left_eye_rapid_lux"                   ,
+  "peek_visual_acuity_tests_rapid_peek_dv_pinhole_right_eye_rapid_label"               ,
+  "peek_visual_acuity_tests_rapid_peek_dv_pinhole_right_eye_rapid_pass"                ,
+  "peek_visual_acuity_tests_rapid_peek_dv_pinhole_right_eye_rapid_lux"                 ,
+  "peek_visual_acuity_tests_rapid_peek_dv_pinhole_left_eye_rapid_label"                ,
+  "peek_visual_acuity_tests_rapid_peek_dv_pinhole_left_eye_rapid_pass"                 ,
+  "peek_visual_acuity_tests_rapid_peek_dv_pinhole_left_eye_rapid_lux"                  ,
+  "peek_visual_acuity_tests_rapid_peek_nva_uncorrected_right_eye_rapid_label"          ,
+  "peek_visual_acuity_tests_rapid_peek_nva_uncorrected_right_eye_rapid_pass"           ,
+  "peek_visual_acuity_tests_rapid_peek_nva_uncorrected_right_eye_rapid_lux"            ,
+  "peek_visual_acuity_tests_rapid_peek_nva_uncorrected_left_eye_rapid_label"           ,
+  "peek_visual_acuity_tests_rapid_peek_nva_uncorrected_left_eye_rapid_pass"            ,
+  "peek_visual_acuity_tests_rapid_peek_nva_uncorrected_left_eye_rapid_lux"             ,
+  "peek_visual_acuity_tests_rapid_peek_nva_corrected_right_eye_rapid_label"            ,
+  "peek_visual_acuity_tests_rapid_peek_nva_corrected_right_eye_rapid_pass"             ,
+  "peek_visual_acuity_tests_rapid_peek_nva_corrected_right_eye_rapid_lux"              ,
+  "peek_visual_acuity_tests_rapid_peek_nva_corrected_left_eye_rapid_label"             ,
+  "peek_visual_acuity_tests_rapid_peek_nva_corrected_left_eye_rapid_pass"              ,
+  "peek_visual_acuity_tests_rapid_peek_nva_corrected_left_eye_rapid_lux"               ,
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_right_eye_dv_snellen_uc_re_06_12",
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_right_eye_dv_snellen_uc_re_06_18",
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_right_eye_dv_snellen_uc_re_06_60",
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_right_eye_dv_snellen_uc_re_03_60",
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_left_eye_dv_snellen_uc_le_06_12" ,
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_left_eye_dv_snellen_uc_le_06_18" ,
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_left_eye_dv_snellen_uc_le_06_60" ,
+  "snellen_visual_acuity_tests_dv_snellen_uncorrected_left_eye_dv_snellen_uc_le_03_60" ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_right_eye_dv_snellen_co_re_06_12"  ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_right_eye_dv_snellen_co_re_06_18"  ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_right_eye_dv_snellen_co_re_06_60"  ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_right_eye_dv_snellen_co_re_03_60"  ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_left_eye_dv_snellen_co_le_06_12"   ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_left_eye_dv_snellen_co_le_06_18"   ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_left_eye_dv_snellen_co_le_06_60"   ,
+  "snellen_visual_acuity_tests_dv_snellen_corrected_left_eye_dv_snellen_co_le_03_60"   ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_right_eye_dv_snellen_ph_re_06_12"    ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_right_eye_dv_snellen_ph_re_06_18"    ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_right_eye_dv_snellen_ph_re_06_60"    ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_right_eye_dv_snellen_ph_re_03_60"    ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_left_eye_dv_snellen_ph_le_06_12"     ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_left_eye_dv_snellen_ph_le_06_18"     ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_left_eye_dv_snellen_ph_le_06_60"     ,
+  "snellen_visual_acuity_tests_dv_snellen_pinhole_left_eye_dv_snellen_ph_le_03_60"     ,
+  "snellen_visual_acuity_tests_nv_snellen_uncorrected_right_eye_nv_snellen_uc_re_n6"   ,
+  "snellen_visual_acuity_tests_nv_snellen_uncorrected_left_eye_nv_snellen_uc_le_n6"    ,
+  "snellen_visual_acuity_tests_nva_snellen_corrected_right_eye_nv_snellen_co_re_n6"    ,
+  "snellen_visual_acuity_tests_nva_snellen_corrected_left_eye_nva_snellen_co_le_n6"    ,
+  "referral_name"                                                                      ,
+  "referral_address"                                                                   ,
+  "referral_contact_number"                                                            ,
+  "location_geolocation_longitude"                                                     ,
+  "location_geolocation_latitude"                                                      ,
+  "location_geolocation_altitude"                                                      ,
+  "location_geolocation_accuracy"                                                      ,
+  "location_geolocation_type"                                                          ,
+  "location_geolocation_coordinates_1"                                                 ,
+  "location_geolocation_coordinates_2"                                                 ,
+  "location_geolocation_coordinates_3"                                                 ,
+  "location_geolocation_properties_accuracy"                                           ,
+  "meta_audit"                                                                         ,
+  "meta_instance_id"                                                                   ,
+  "id"                                                                                 ,
+  "system_submission_date"                                                             ,
+  "system_updated_at"                                                                  ,
+  "system_submitter_id"                                                                ,
+  "system_submitter_name"                                                              ,
+  "system_attachments_present"                                                         ,
+  "system_attachments_expected"                                                        ,
+  "system_status"                                                                      ,
+  "system_review_state"                                                                ,
+  "system_device_id"                                                                   ,
+  "system_edits"                                                                       ,
+  "system_form_version"                                                                ,
+  "odata_context"   
+)
+
+
+```
+
+```{r, include=F}
+
+df<- df_raw %>%  
+  filter(system_submitter_name != "testing") %>% 
+  filter(system_submitter_name != "Chrissy h. Roberts (User)") %>% 
+  rename (
+     age = "person_info_sf0a",
+     sex = "person_info_sf0b",
+     education_level = "person_info_sf0c",
+     presents_with_distance_vision_correction = "person_info_sf2b",
+     presents_with_near_vision_correction = "person_info_sf2c",
+     history_corrective_surgery = "person_info_sf1a",
+     history_corrective_surgery_years_since = "person_info_sf1b" 
+        ) %>% 
+  mutate_if(is.character, toupper) %>% 
+  mutate_if(is.character, as.factor) %>% 
+  mutate_if(is.POSIXct, lubridate::as_datetime) %>% 
+  mutate(
+    splash_form_created_date = as.Date(splash_form_created_date), # remove time
+    survey_duration = as.numeric(round(difftime(splash_form_finalised_timestamp,splash_form_created_timestamp,units = "secs"),0)), #adds time taken for this survey
+          )
+
+
+
+```
+
+```{r, include=F}
+#Correct records where there's the cluster was entered incorrectly
+df<-df %>% 
+  mutate(
+    person_location_cluster =
+      case_when(
+                id == "UUID:279805EF-7CB4-417C-A883-159C8ED62C71"~"008_KOFAR_FADA_BALANGU",
+                id == "UUID:ACCBD594-FD99-45B6-8D24-B2B0F54658F5"~"029_MALAMAWA_I",
+                id == "UUID:1FC3D5DA-7D4F-41E9-9B15-4B58B708E6EA"~"028_GABARI",
+                id == "UUID:574C0630-2D09-4BD7-860F-3D0F66B62CF9"~"022_GARIN_HARDO",
+                id == "UUID:222E074D-B622-42A1-8DAF-AC208FD99485"~"058_KARUMI_BABBA",
+                id == "UUID:F40A9852-B2F4-4E25-B2F0-A80346B03646"~"039_HADIN_UNGUWA",
+                id == "UUID:002C2D0A-4FFA-43B1-8452-6935390F0572"~"008_KOFAR_FADA_BALANGU",
+                id == "UUID:741B5AC7-9F56-4044-B9E5-CB84FA0C062B"~"023_UNG_KYARI",
+                id == "UUID:C1D602A7-9D70-4AA8-8187-C3C65FC7ABBF"~"039_HADIN_UNGUWA",
+                id == "UUID:9892EE48-7848-4E91-AF1A-99F55D355D7C"~"039_HADIN_UNGUWA",
+                id == "UUID:3A5F1248-0604-4010-8A53-7542FF3090C8"~"039_HADIN_UNGUWA",
+                id == "UUID:E4A9B437-12D2-4A33-83A4-9FD110FEDC01"~"039_HADIN_UNGUWA",
+                id == "UUID:CFAB3E06-2B08-4F28-92FB-B63D678B4A70"~"032_KAUGAMA",
+                id == "UUID:4EC429A8-B0CE-4EDB-ACC1-43E43548E596"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:9F2C38E0-1E19-4C88-9339-B78F87B4E602"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:1CA18620-CEB1-4DD2-BA3C-6A2834C72930"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:50951445-F6F7-40CF-8CFC-AFA9B1330945"~"042_AGIM_ARKI",
+                id == "UUID:EDDF5EB3-29FD-4548-AA5F-72DBB45AF5E3"~"002_KAFIN_HAUSA",
+                id == "UUID:941C31D0-7FF3-4964-A4D3-F68CC11A0019"~"002_KAFIN_HAUSA",
+                id == "UUID:A81DEA2D-847E-4659-9D9C-301DD61E728C"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:C07D889F-05AB-4257-94CA-EFCDD99F3784"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:4E6B832A-E121-47D1-88F0-77FA99504A19"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:C9F183E1-A19A-43BD-9D8C-BD3D2A74E26C"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:29CF5624-5EF1-4B5E-AA35-983CAC527757"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:E2CB0CE6-3A4D-47A0-B0C1-8B4EA8F5688E"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:06BC364A-DBDD-461F-984F-369A2A1417A8"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:38458415-6993-48C0-976B-CF4C420B82E9"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:E2CB0CE6-3A4D-47A0-B0C1-8B4EA8F5688E"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:E73BF45F-E148-4BD1-AD0C-843E7BF21390"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:587E4458-49E4-473D-9B60-A8D2BD9659BC"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:056E9DFA-34D8-4903-8C1B-9C16A6DDD4EA"~"045_TOSARAWAN_MALAMA_ARKI",
+                id == "UUID:84730F3D-A7D1-4546-A65D-00FB5695FDB0"~"045_TOSARAWAN_MALAMA_ARKI",
+                TRUE ~ person_location_cluster
+              ),
+    person_location_cluster = as.factor(person_location_cluster)
+          )
+
+```
+
+# Overall Progress
+
+## Top Pane
+
+```{r,warning=F,message=F,echo=F}
+# Load necessary libraries
+library(dplyr)
+library(plotly)
+
+# Define the date range
+start_date <- as.Date("2024-06-23")
+end_date <- as.Date("2024-09-01")
+
+# Create a sequence of all dates within the range
+all_dates <- seq.Date(start_date, end_date, by = "day")
+
+# Group data by country, cluster, and date
+daily_counts <- df %>% 
+  filter(person_location_country == "NIGERIA") %>% 
+  group_by(person_location_cluster, splash_form_created_date) %>%
+  summarise(n = n(), .groups = 'drop')
+
+# Calculate the total number of submissions
+total_submissions <- sum(daily_counts$n, na.rm = TRUE)
+
+# Create a data frame with all dates and clusters to ensure all dates are represented
+expanded_dates <- expand.grid(splash_form_created_date = all_dates,
+                              person_location_cluster = unique(daily_counts$person_location_cluster))
+
+# Merge the expanded dates with the actual data to fill in missing dates with zero counts
+daily_counts <- expanded_dates %>%
+  left_join(daily_counts, by = c("splash_form_created_date", "person_location_cluster")) %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+# Create the plot
+p <- plot_ly(data = daily_counts, 
+             x = ~splash_form_created_date, 
+             y = ~n, 
+             color = ~person_location_cluster, 
+             type = 'bar') %>%
+  layout(barmode = 'stack',
+         title = paste("Daily Submissions by Cluster (Nigeria) - Total Submissions:", total_submissions),
+         xaxis = list(title = 'Date',
+                      tickangle = -90,
+                      tickformat = "%Y-%m-%d",
+                      tickmode = 'linear',
+                      dtick = 7*86400000,  # One day in milliseconds
+                      range = c(start_date, end_date)),
+         yaxis = list(title = 'Number of Submissions'))
+
+# Render the plot
+p
+
+```
+
+```{r,warning=F,message=F,echo=F}
+
+# Add jitter to the rounded latitude and longitude values
+set.seed(123)  # Set seed for reproducibility
+
+# Define a custom jitter function
+custom_jitter <- function(x, amount) {
+  x + runif(length(x), min = -amount, max = amount)
+}
+
+df <- df %>% filter(person_location_cluster!="") %>% 
+ mutate(
+  jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.0003),
+  jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.0003)
+)
+
+# Define a color palette for the clusters
+palette <- colorFactor(palette = brewer.pal(9, "Set1"), domain = df$person_location_cluster)
+
+# Function to create a polygon for each cluster
+create_cluster_polygons <- function(df) {
+  clusters <- unique(df$person_location_cluster)
+  polygons <- lapply(clusters, function(cluster) {
+    cluster_points <- df %>% filter(person_location_cluster == cluster)
+    cluster_points <- cluster_points %>%
+      filter(!is.na(jittered_longitude) & !is.na(jittered_latitude))  # Filter out rows with missing coordinates
+    
+    if (nrow(cluster_points) > 0) {
+      coords <- cbind(cluster_points$jittered_longitude, cluster_points$jittered_latitude)
+      sp_points <- st_as_sf(as.data.frame(coords), coords = c("V1", "V2"), crs = 4326)
+      hull <- st_convex_hull(st_union(sp_points))
+      count <- nrow(cluster_points)
+      return(list(cluster = cluster, hull = hull, count = count))
+    } else {
+      return(NULL)
+    }
+  })
+  polygons <- Filter(Negate(is.null), polygons)  # Remove NULL elements
+  return(polygons)
+}
+
+# Create polygons for each cluster
+cluster_polygons <- create_cluster_polygons(df)
+
+
+# Sort the cluster names
+sorted_cluster_names <- sort(unique(df$person_location_cluster))
+
+
+# Create the leaflet map using the jittered coordinates
+map <- leaflet(df) %>%
+  addTiles(options = tileOptions(maxZoom = 18))
+
+# Add circle markers with clustering options
+map <- map %>%
+  addCircleMarkers(
+    lng = ~jittered_longitude,
+    lat = ~jittered_latitude,
+    radius = ~location_geolocation_accuracy / 5,  # Adjust radius based on accuracy
+    color = ~palette(person_location_cluster),
+    fillOpacity = 0.7,
+    popup = ~paste(id),  # Add popup with cluster ID
+    group = "Circle Markers",
+    clusterOptions = markerClusterOptions(
+      spiderfyOnMaxZoom = TRUE,  # Enable radial expansion
+      showCoverageOnHover = FALSE,  # Show coverage area on hover
+      zoomToBoundsOnClick = TRUE,  # Zoom to bounds when clicked
+      maxClusterRadius = 200,  # Adjust this value to control clustering behavior
+      disableClusteringAtZoom = 15  # Stop clustering at this zoom level
+    )
+  )
+
+# Add polygons and labels to the same group as the clusters
+for (polygon_data in cluster_polygons) {
+  cluster_group <- paste("Cluster", polygon_data$cluster)
+  map <- map %>%
+    addPolygons(
+      data = polygon_data$hull,
+      color = palette(polygon_data$cluster),
+      fillOpacity = 0.3,
+      group = cluster_group,
+      label = paste(polygon_data$cluster, "(", polygon_data$count, ")"),
+      labelOptions = labelOptions(
+        noHide = FALSE,
+        direction = "auto"
+      )
+    )
+}
+
+# Add layer control to the map
+map <- map %>%
+  addLayersControl(
+    overlayGroups = c("Circle Markers", paste("Cluster", sorted_cluster_names)),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+
+# Render the map
+map
+
+```
+
+## Bottom Pane
+
+```{r,warning=F,message=F,echo=F}
+
+# Define the date range
+start_date <- as.Date("2024-06-23")
+end_date <- as.Date("2024-09-01")
+
+# Create a sequence of all dates within the range
+all_dates <- seq.Date(start_date, end_date, by = "day")
+
+# Group data by country, cluster, and date
+daily_counts <- df %>% 
+  filter(person_location_country == "ETHIOPIA") %>% 
+  group_by(person_location_cluster, splash_form_created_date) %>%
+  summarise(n = n(), .groups = 'drop')
+
+# Calculate the total number of submissions
+total_submissions <- sum(daily_counts$n, na.rm = TRUE)
+
+# Create a data frame with all dates and clusters to ensure all dates are represented
+expanded_dates <- expand.grid(splash_form_created_date = all_dates,
+                              person_location_cluster = unique(daily_counts$person_location_cluster))
+
+# Merge the expanded dates with the actual data to fill in missing dates with zero counts
+daily_counts <- expanded_dates %>%
+  left_join(daily_counts, by = c("splash_form_created_date", "person_location_cluster")) %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+# Create the plot
+p <- plot_ly(data = daily_counts, 
+             x = ~splash_form_created_date, 
+             y = ~n, 
+             color = ~person_location_cluster, 
+             type = 'bar') %>%
+  layout(barmode = 'stack',
+         title = paste("Daily Submissions by Cluster (Ethiopia) - Total Submissions:", total_submissions),
+         xaxis = list(title = 'Date',
+                      tickangle = -90,
+                      tickformat = "%Y-%m-%d",
+                      tickmode = 'linear',
+                      dtick = 7*86400000,  # One day in milliseconds
+                      range = c(start_date, end_date)),
+         yaxis = list(title = 'Number of Submissions'))
+
+# Render the plot
+p
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Filter the data
+filtered_df <- df %>% 
+  filter(presents_with_near_vision_correction == "NO",
+         presents_with_distance_vision_correction == "NO",
+         survey_duration < 3600)
+
+  
+
+p <- plot_ly() %>%
+  # Add the violin plot
+  add_trace(data = filtered_df,
+            y = ~person_location_standard_minimal_peek,
+            x = ~survey_duration,
+            type = 'violin',
+            orientation = 'h',  # Horizontal orientation
+            side = 'positive',  # Violin on the positive side
+            box = list(visible = FALSE),  # Hide the box in the violin plot
+            meanline = list(visible = TRUE, line = list(color = 'red')),  # Mean line color
+            line = list(color = 'black'),  # Violin line color
+            fillcolor = 'rgba(93, 164, 214, 0.5)',
+            opacity = 0.6,
+            points = FALSE,  # Remove points from the violin layer
+            name = 'Violin Plot',
+            showlegend = FALSE) %>%
+ 
+  # Add the box plot as a separate trace
+  add_trace(data = filtered_df,
+            y = ~person_location_standard_minimal_peek,
+            x = ~survey_duration,
+            type = 'box',
+            orientation = 'h',  # Horizontal orientation
+            boxpoints = 'all',  # Show all points
+            jitter = 0.25,   # Adjust jitter to bring points closer
+            pointpos = -1.5,  # Position points to the left side
+            fillcolor = 'rgba(255, 255, 255, 0)',  
+            marker = list(size = 3),  # Adjust point size for box plot points
+            line = list(color = 'lightgrey'),  # Box color and width
+            opacity = 0.7,
+            name = 'Box Plot',
+            showlegend = FALSE) %>%
+  layout(title = "Time taken to complete submission, by protocol",
+         yaxis = list(title = 'Protocol'),
+         xaxis = list(title = 'Survey Duration (seconds)', range = c(0, max(filtered_df$survey_duration) * 1.1)),  # Set x-axis range
+        range = list(0, max(filtered_df$survey_duration) * 1.1),  
+legend = list(title = list(text = "Key"),
+                       orientation = 'h',   # Horizontal legend
+                       x = 0.5,
+                       xanchor = 'center',
+                       y = -0.2),
+         violingap = 0,  # Gap between violins
+         violinmode = 'group')  # Group violins by y-axis variable
+         
+
+# Render the plot
+p
+```
+
+# 
+
+# Protocols and Devices
+
+## Top pane
+
+```{r,warning=F,message=F,echo=F}
+
+# Group data by country, cluster, and date
+protocol_counts <- df %>% 
+  filter(person_location_country == "NIGERIA") %>% 
+  group_by(person_location_cluster, person_location_standard_minimal_peek) %>%
+  reframe(n = n(), .groups = 'drop')
+
+
+# Create the plot
+p <- plot_ly(data = protocol_counts, 
+             x = ~person_location_cluster, 
+             y = ~n, 
+             color = ~person_location_standard_minimal_peek, 
+             type = 'bar') %>% 
+  layout(barmode = 'stack',
+         title = "Total Submissions by Cluster and Protocol (Nigeria)",
+         xaxis = list(title = 'Cluster',
+                      tickangle = 45,
+                      tickmode = 'linear',
+         yaxis = list(title = 'Number of Submissions')))
+
+
+# Render the plot
+p
+```
+
+```{r,warning=F,message=F,echo=F}
+
+# Group data by country, cluster, and date
+protocol_counts <- df %>% 
+  filter(person_location_country == "ETHIOPIA") %>% 
+  group_by(person_location_cluster, person_location_standard_minimal_peek) %>%
+  summarise(n = n(), .groups = 'drop')
+
+
+# Create the plot
+p <- plot_ly(data = protocol_counts, 
+             x = ~person_location_cluster, 
+             y = ~n, 
+             color = ~person_location_standard_minimal_peek, 
+             type = 'bar') %>% 
+  layout(barmode = 'stack',
+         title = "Total Submissions by Cluster and Protocol (Ethiopia)",
+         xaxis = list(title = 'Cluster',
+                      tickangle = 45,
+                      tickmode = 'linear',
+         yaxis = list(title = 'Number of Submissions')))
+
+
+# Render the plot
+p
+```
+
+## Bottom Pane
+
+```{r,warning=F,message=F,echo=F}
+# Calculate counts of submissions by device
+counts_clusters_device_protocol <- df %>%
+  group_by(system_device_id) %>%
+  reframe(n = n()) %>%
+  arrange(system_device_id)
+
+# Create the bar plot using plotly
+p <- plot_ly(data = counts_clusters_device_protocol,
+             y = ~system_device_id,
+             x = ~n,
+             type = 'bar',
+             marker = list(color = 'rgba(93, 164, 214, 0.5)')) %>%
+  layout(title = "Total submissions by device",
+         yaxis = list(title = 'Device', tickangle = 0),
+         xaxis = list(title = 'Count'),
+         legend = list(orientation = 'h', x = 0.5, xanchor = 'center', y = -0.2),
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Filter the data
+filtered_df <- df %>% 
+  filter(survey_duration < 3600)
+
+p <- plot_ly() %>%
+ 
+  # Add the box plot as a separate trace
+  add_trace(data = filtered_df,
+            y = ~system_device_id,
+            x = ~survey_duration,
+            type = 'box',
+            orientation = 'h',  # Horizontal orientation
+            boxpoints = 'all',  # Show all points
+            jitter = 0.25,   # Adjust jitter to bring points closer
+            pointpos = 0,  # Position points to the left side
+            fillcolor = 'rgba(255, 255, 255, 0)',  
+            marker = list(size = 3),  # Adjust point size for box plot points
+            line = list(color = 'black'),  # Box color and width
+            opacity = 0.7,
+            name = 'Box Plot',
+            showlegend = FALSE) %>%
+  layout(title = "Time taken to complete submission, by device",
+         yaxis = list(title = 'Protocol'),
+         xaxis = list(title = 'Survey Duration (seconds)'),  # Set x-axis range
+        range = list(0, max(filtered_df$survey_duration) * 1.1),  
+legend = list(title = list(text = "Key"),
+                       orientation = 'h',   # Horizontal legend
+                       x = 0.5,
+                       xanchor = 'center',
+                       y = -0.2),
+         violingap = 0,  # Gap between violins
+         violinmode = 'group')  # Group violins by y-axis variable
+         
+
+# Render the plot
+p
+```
+
+# Demographic distributions (Nigeria)
+
+## Top panel
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+## Age distributions by cluster 
+# Filter the data for Nigeria
+filtered_df <- df %>% 
+  filter(person_location_country == "NIGERIA")
+
+# Create the box plot using plotly
+p <- plot_ly(data = filtered_df,
+             x = ~person_location_cluster,
+             y = ~age,
+             type = 'box',
+             boxpoints = 'none',  # Show all points
+             jitter = 0.3,       # Add jitter to points for better visibility
+             pointpos = 0,       # Position points
+             marker = list(opacity = 0.6)) %>%
+  layout(title = "Age distributions by cluster (Nigeria)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Age', range = c(0, 125)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+## Sex distributions by cluster 
+
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, sex) %>% 
+  summarize(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for females
+female_df <- result_df %>% filter(sex == "FEMALE")
+
+# Create the plotly plot with error bars
+p <- plot_ly(data = female_df,
+             x = ~person_location_cluster,
+             y = ~prop,
+             type = 'scatter',
+             mode = 'markers',
+             error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+             marker = list(size = 10, color = 'rgba(93, 164, 214, 0.5)'),
+             showlegend = FALSE) %>%
+  layout(title = "Sex distributions by cluster (Nigeria)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion Female'),
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+  filter(person_location_country == "NIGERIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, education_level) %>% 
+  summarize(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Create the plotly plot with multiple traces for each education level
+p <- plot_ly()
+
+education_levels <- unique(result_df$education_level)
+
+for (level in education_levels) {
+  df_level <- result_df %>% filter(education_level == level)
+  
+  p <- p %>%
+    add_trace(data = df_level,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              name = level,
+              showlegend = TRUE)
+}
+
+p <- p %>%
+  layout(title = "Educational levels by cluster (Nigeria)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with educational level', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+## Bottom Panel
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+    filter(person_location_country=="NIGERIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, presents_with_distance_vision_correction) %>% 
+  reframe(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for individuals presenting with distance vision correction
+filtered_df <- result_df %>% 
+  filter(presents_with_distance_vision_correction == "YES")
+
+# Create the plotly plot with error bars and facets
+p <- plot_ly()
+
+
+
+  p <- p %>%
+    add_trace(data = filtered_df,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              showlegend = TRUE)
+
+p <- p %>%
+  layout(title = "Distance Vision Correction (Nigeria)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with Distance Vision Correction', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+    filter(person_location_country=="NIGERIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, presents_with_near_vision_correction) %>% 
+  reframe(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for individuals presenting with distance vision correction
+filtered_df <- result_df %>% 
+  filter(presents_with_near_vision_correction == "YES")
+
+# Create the plotly plot with error bars and facets
+p <- plot_ly()
+
+
+
+  p <- p %>%
+    add_trace(data = filtered_df,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              showlegend = TRUE)
+
+p <- p %>%
+  layout(title = "Near Vision Correction (Nigeria)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with Near Vision Correction', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+    filter(person_location_country=="NIGERIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, history_corrective_surgery) %>% 
+  reframe(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for individuals presenting with distance vision correction
+filtered_df <- result_df %>% 
+  filter(history_corrective_surgery == "YES")
+
+# Create the plotly plot with error bars and facets
+p <- plot_ly()
+
+
+
+  p <- p %>%
+    add_trace(data = filtered_df,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              showlegend = TRUE)
+
+p <- p %>%
+  layout(title = "History of Surgical Correction (Nigeria)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with Surgical Correction', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+# Demographic distributions (Ethiopia)
+
+## Top panel
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+## Age distributions by cluster 
+# Filter the data for Nigeria
+filtered_df <- df %>% 
+  filter(person_location_country == "ETHIOPIA")
+
+# Create the box plot using plotly
+p <- plot_ly(data = filtered_df,
+             x = ~person_location_cluster,
+             y = ~age,
+             type = 'box',
+             boxpoints = 'none',  # Show all points
+             jitter = 0.3,       # Add jitter to points for better visibility
+             pointpos = 0,       # Position points
+             marker = list(opacity = 0.6)) %>%
+  layout(title = "Age distributions by cluster (Ethiopia)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Age', range = c(0, 125)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+## Sex distributions by cluster 
+
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+  filter(person_location_country=="ETHIOPIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, sex) %>% 
+  summarize(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for females
+female_df <- result_df %>% filter(sex == "FEMALE")
+
+# Create the plotly plot with error bars
+p <- plot_ly(data = female_df,
+             x = ~person_location_cluster,
+             y = ~prop,
+             type = 'scatter',
+             mode = 'markers',
+             error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+             marker = list(size = 10, color = 'rgba(93, 164, 214, 0.5)'),
+             showlegend = FALSE) %>%
+  layout(title = "Sex distributions by cluster (Ethiopia)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion Female'),
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+
+```
+
+```{r,echo=FALSE, warning=FALSE, message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+  filter(person_location_country == "ETHIOPIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, education_level) %>% 
+  summarize(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Create the plotly plot with multiple traces for each education level
+p <- plot_ly()
+
+education_levels <- unique(result_df$education_level)
+
+for (level in education_levels) {
+  df_level <- result_df %>% filter(education_level == level)
+  
+  p <- p %>%
+    add_trace(data = df_level,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              name = level,
+              showlegend = TRUE)
+}
+
+p <- p %>%
+  layout(title = "Educational levels by cluster (Ethiopia)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with educational level', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+## Bottom Panel
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+    filter(person_location_country=="ETHIOPIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, presents_with_distance_vision_correction) %>% 
+  reframe(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for individuals presenting with distance vision correction
+filtered_df <- result_df %>% 
+  filter(presents_with_distance_vision_correction == "YES")
+
+# Create the plotly plot with error bars and facets
+p <- plot_ly()
+
+
+
+  p <- p %>%
+    add_trace(data = filtered_df,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              showlegend = TRUE)
+
+p <- p %>%
+  layout(title = "Distance Vision Correction (Ethiopia)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with Distance Vision Correction', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+    filter(person_location_country=="ETHIOPIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, presents_with_near_vision_correction) %>% 
+  reframe(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for individuals presenting with distance vision correction
+filtered_df <- result_df %>% 
+  filter(presents_with_near_vision_correction == "YES")
+
+# Create the plotly plot with error bars and facets
+p <- plot_ly()
+
+
+
+  p <- p %>%
+    add_trace(data = filtered_df,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              showlegend = TRUE)
+
+p <- p %>%
+  layout(title = "Near Vision Correction (Ethiopia)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with Near Vision Correction', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+```{r,echo=FALSE, warning=FALSE ,message = F}
+
+# Calculate proportions and standard error
+result_df <- df %>% 
+    filter(person_location_country=="ETHIOPIA") %>% 
+  group_by(person_location_cluster) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_cluster, history_corrective_surgery) %>% 
+  reframe(
+    n = n(), 
+    denom = first(denom), 
+    prop = n / first(denom),
+    prop_se = sqrt((prop * (1 - prop)) / first(denom)),  # Calculate standard error of the proportions
+    .groups = 'drop'
+  ) %>% 
+  arrange(person_location_cluster)
+
+# Filter for individuals presenting with distance vision correction
+filtered_df <- result_df %>% 
+  filter(history_corrective_surgery == "YES")
+
+# Create the plotly plot with error bars and facets
+p <- plot_ly()
+
+
+
+  p <- p %>%
+    add_trace(data = filtered_df,
+              x = ~person_location_cluster,
+              y = ~prop,
+              type = 'scatter',
+              mode = 'markers',
+              error_y = list(type = 'data', array = ~prop_se, visible = TRUE),
+              marker = list(size = 10),
+              showlegend = TRUE)
+
+p <- p %>%
+  layout(title = "History of Surgical Correction (Ethiopia)",
+         xaxis = list(title = 'Cluster', tickangle = 45),
+         yaxis = list(title = 'Proportion with Surgical Correction', range = c(0, 1)),  # Set y-axis limits
+         margin = list(b = 150))  # Adjust bottom margin for x-axis labels
+
+# Render the plot
+p
+```
+
+
+# Extra analyses
+
+## Top Pane
+
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  mutate(age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")))
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(sex,survey_duration,fill=sex))+
+  geom_boxplot()+
+  facet_grid(.~age_group) +
+  ggtitle("Survey Duration by Age and Sex (Nigeria)")
+)
+
+```
+
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% mutate(
+    education_level = factor(education_level,levels=c("EDUCATION_NONE","EDUCATION_PRIMARY","EDUCATION_MIDDLE","EDUCATION_HIGHSCHOOL","EDUCATION_FURTHER_HIGHER"))
+  )
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(sex,survey_duration,fill=education_level))+
+  geom_boxplot()+
+  facet_grid(.~education_level) +
+  ggtitle("Survey Duration by Education and Sex (Nigeria)")
+)
+
+
+
+
+
+```
+
+## Bottom pane
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  mutate(
+    age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")),
+    education_level = factor(education_level,levels=c("EDUCATION_NONE","EDUCATION_PRIMARY","EDUCATION_MIDDLE","EDUCATION_HIGHSCHOOL","EDUCATION_FURTHER_HIGHER"))
+  )
+    
+  
+
+ 
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(age_group,survey_duration,fill=education_level))+
+  geom_boxplot()+
+  facet_grid(.~education_level) +
+  ggtitle("Survey Duration by Education and Age (Nigeria)")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+)
+
+```
+
+```{r}
+filtered_df<-df %>% 
+  filter(person_location_country=="NIGERIA") %>% 
+  mutate(age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")))
+
+ggplotly(ggplot(filter(filtered_df,survey_duration<3600),aes(person_location_standard_minimal_peek,survey_duration,fill=person_location_standard_minimal_peek))+
+  geom_boxplot()+
+  facet_grid(.~age_group) +
+  ggtitle("Survey Duration by Age and Protocol (Nigeria)")
+)
+
+```
+
+# Vision
+## Top panel
+
+```{r,warning=F,message=F,error=F}
+# Display a message about the number of referrals by each method
+
+bilateral_logMAR_Peek <- df %>% 
+  filter(person_location_standard_minimal_peek=="PEEK") %>% 
+  select(id,person_location_standard_minimal_peek,peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar,peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar) %>%
+  mutate(
+    peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar = as.numeric(as.character(peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar)),
+    peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar =  as.numeric(as.character(peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar)), 
+    bilateral_fail_uncorrected = case_when(
+      
+      peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar>=0.3 & peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar >=0.3 ~ "BILATERAL_FAIL_0.3",
+    peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar<0.3 | peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar <0.3 ~ "PASS")
+    )
+
+  
+bilateral_logMAR_Peekminimal <- df %>% 
+  filter(person_location_standard_minimal_peek=="PEEK_MINIMAL") %>% 
+  select(id,person_location_standard_minimal_peek,peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass,peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass) %>%
+  mutate(
+    bilateral_fail_uncorrected = case_when(
+      peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == FALSE & peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == FALSE ~ "BILATERAL_FAIL_0.3",
+      
+       peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == "UNDEFINED" & peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == "UNDEFINED" ~ "BILATERAL_FAIL_0.3",
+      peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == TRUE | peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == TRUE ~ "PASS"
+    )
+        
+          )
+
+bilateral_logMAR_combined <- bind_rows(bilateral_logMAR_Peek,bilateral_logMAR_Peekminimal)
+
+
+# Function to calculate confidence interval
+conf_interval <- function(prop, n, confidence = 0.95) {
+  error <- qnorm((1 + confidence) / 2) * sqrt((prop * (1 - prop)) / n)
+  return(error)
+}
+
+bilateral_logMAR_combined_results <- bilateral_logMAR_combined %>% 
+  group_by(person_location_standard_minimal_peek) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_standard_minimal_peek, bilateral_fail_uncorrected) %>% 
+  reframe(
+    n = n(),
+    denom = first(denom),
+    prop = n / first(denom),
+    error = conf_interval(prop, n),
+    ci_lower = prop - error,
+    ci_upper = prop + error
+  ) %>% 
+  distinct()
+
+ggplotly(
+ggplot(filter(bilateral_logMAR_combined_results,bilateral_fail_uncorrected=="BILATERAL_FAIL_0.3"),aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
+  geom_bar(stat="identity",position="dodge")+
+geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +
+  labs(
+    x = "Person Location Standard Minimal Peek",
+    y = "Proportion",
+    fill = "Bilateral Fail Uncorrected"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("DV by Person Location and Bilateral LogMAR >=0.3")+
+  ylim(0,1)
+)
+```
+
+
+```{r}
+bilateral_logMAR_combined<-bilateral_logMAR_combined %>% filter(!is.na(bilateral_fail_uncorrected))
+#summary(as.factor(bilateral_logMAR_combined$bilateral_fail_uncorrected))
+
+
+# Display a message about the number of referrals by each method
+message("Number of bilateral DV fails (LogMAR>=0.3) by each method")
+
+# Create a new column 'referred' based on the presence of 'referral_name'
+
+# Create a contingency table
+referral_location_table <- table(bilateral_logMAR_combined$bilateral_fail_uncorrected, bilateral_logMAR_combined$person_location_standard_minimal_peek)
+
+# Print the contingency table
+print(referral_location_table)
+
+# Perform the chi-squared test
+chi_squared_result <- chisq.test(referral_location_table)
+
+# Print the chi-squared test result
+print(chi_squared_result)
+
+
+```
+## Lower panel
+
+```{r,warning=F,message=F,error=F}
+# Display a message about the number of referrals by each method
+
+bilateral_logMAR_Peek <- df %>% 
+  filter(person_location_standard_minimal_peek=="PEEK",
+         age >= 35) %>% 
+  select(id,person_location_standard_minimal_peek,peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_log_mar,peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_log_mar) %>%
+  mutate(
+    peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_log_mar = as.numeric(as.character(peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_log_mar)),
+    peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_log_mar =  as.numeric(as.character(peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_log_mar)), 
+    bilateral_fail_uncorrected = case_when(
+      
+      peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_log_mar>=0.3 & peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_log_mar >=0.3 ~ "BILATERAL_FAIL_0.3",
+    peek_visual_acuity_tests_peek_nva_uncorrected_right_eye_log_mar<0.3 | peek_visual_acuity_tests_peek_nva_uncorrected_left_eye_log_mar <0.3 ~ "PASS")
+    )
+
+  
+bilateral_logMAR_Peekminimal <- df %>% 
+  filter(person_location_standard_minimal_peek=="PEEK_MINIMAL",
+         age >= 35) %>% 
+  select(id,person_location_standard_minimal_peek,peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass,peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass) %>%
+  mutate(
+    bilateral_fail_uncorrected = case_when(
+      peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == FALSE & peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == FALSE ~ "BILATERAL_FAIL_0.3",
+      
+       peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == "UNDEFINED" & peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == "UNDEFINED" ~ "BILATERAL_FAIL_0.3",
+      peek_visual_acuity_tests_rapid_peek_uncorrected_right_eye_rapid_pass == TRUE | peek_visual_acuity_tests_rapid_peek_uncorrected_left_eye_rapid_pass == TRUE ~ "PASS"
+    )
+        
+          )
+
+bilateral_logMAR_combined <- bind_rows(bilateral_logMAR_Peek,bilateral_logMAR_Peekminimal)
+
+
+# Function to calculate confidence interval
+conf_interval <- function(prop, n, confidence = 0.95) {
+  error <- qnorm((1 + confidence) / 2) * sqrt((prop * (1 - prop)) / n)
+  return(error)
+}
+
+bilateral_logMAR_combined_results <- bilateral_logMAR_combined %>% 
+  group_by(person_location_standard_minimal_peek) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_standard_minimal_peek, bilateral_fail_uncorrected) %>% 
+  reframe(
+    n = n(),
+    denom = first(denom),
+    prop = n / first(denom),
+    error = conf_interval(prop, n),
+    ci_lower = prop - error,
+    ci_upper = prop + error
+  ) %>% 
+  distinct()
+
+ggplotly(
+ggplot(filter(bilateral_logMAR_combined_results,bilateral_fail_uncorrected=="BILATERAL_FAIL_0.3"),aes (person_location_standard_minimal_peek,prop,fill=bilateral_fail_uncorrected))+
+  geom_bar(stat="identity",position="dodge")+
+geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +
+  labs(
+    x = "Person Location Standard Minimal Peek",
+    y = "Proportion",
+    fill = "Bilateral Fail Uncorrected"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("NV by Person Location and Bilateral LogMAR >=0.3")+
+  ylim(0,1)
+)
+```
+
+```{r}
+bilateral_logMAR_combined<-bilateral_logMAR_combined %>% filter(!is.na(bilateral_fail_uncorrected))
+#summary(as.factor(bilateral_logMAR_combined$bilateral_fail_uncorrected))
+
+
+# Display a message about the number of referrals by each method
+message("Number of bilateral NV fails (LogMAR>=0.3) by each method")
+
+# Create a new column 'referred' based on the presence of 'referral_name'
+
+# Create a contingency table
+referral_location_table <- table(bilateral_logMAR_combined$bilateral_fail_uncorrected, bilateral_logMAR_combined$person_location_standard_minimal_peek)
+
+# Print the contingency table
+print(referral_location_table)
+
+# Perform the chi-squared test
+chi_squared_result <- chisq.test(referral_location_table)
+
+# Print the chi-squared test result
+print(chi_squared_result)
+
+```
+
+
+# Referrals
+## Top Panel
+
+```{r}
+
+# Create a new column 'referred' based on the presence of 'referral_name'
+referrals <- df %>% 
+  mutate(referred = ifelse(is.na(referral_name), "NOT_REFERRED", "REFERRED")) %>% 
+  group_by(person_location_standard_minimal_peek) %>% 
+  mutate(denom = n()) %>% 
+  group_by(person_location_standard_minimal_peek, referred) %>% 
+  reframe(
+    n = n(),
+    denom = first(denom),
+    prop = n / first(denom),
+    error = conf_interval(prop, n),
+    ci_lower = prop - error,
+    ci_upper = prop + error
+  ) %>% 
+  distinct()
+
+ggplotly(
+ggplot(filter(referrals,referred=="REFERRED"),aes (person_location_standard_minimal_peek,prop,fill=referred))+
+  geom_bar(stat="identity",position="dodge")+
+geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +
+  labs(
+    x = "Person Location Standard Minimal Peek",
+    y = "Proportion",
+    fill = "Bilateral Fail Uncorrected"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("Referrals by protocol")
+)
+
+```
+
+
+```{r}
+
+# Display a message about the number of referrals by each method
+message("Number of referrals by each method")
+
+df<- df %>%   mutate(referred = ifelse(is.na(referral_name), "NOT_REFERRED", "REFERRED"))
+# Create a contingency table
+referral_location_table <- table(df$referred, df$person_location_standard_minimal_peek)
+
+# Print the contingency table
+print(referral_location_table)
+
+# Perform the chi-squared test
+chi_squared_result <- chisq.test(referral_location_table)
+
+# Print the chi-squared test result
+print(chi_squared_result)
+
+```
+## Bottom panel
+
+```{r}
+logmar_age_left<-df %>% 
+  filter(person_location_country=="NIGERIA",
+         person_location_standard_minimal_peek=="PEEK") %>% 
+  mutate(age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")),
+         logmar= as.numeric(as.character(peek_visual_acuity_tests_peek_uncorrected_left_eye_log_mar)))
+
+logmar_age_right<-df %>% 
+  filter(person_location_country=="NIGERIA",
+         person_location_standard_minimal_peek=="PEEK") %>% 
+  mutate(age_group = cut(age,breaks = c(0,10,15,20,30,40,50,60,120),labels = c("0_10","11_15","16_20","21_30","31_40","41_50","51_60","61_120")),
+         logmar = as.numeric(as.character(peek_visual_acuity_tests_peek_uncorrected_right_eye_log_mar)))
+
+logmar_age<-bind_rows(logmar_age_left,logmar_age_right)
+
+ggplot(logmar_age,aes(age_group,logmar))+
+  geom_boxplot()+
+  ggtitle("LogMAR by Age (Nigeria)")+
+  geom_hline(yintercept = 0.3,lty=2,col="red")
+
+
+```
+
