@@ -190,8 +190,8 @@ df<-df %>%
   mutate(
     person_location_cluster =
       case_when(
-                system_device_id=="COLLECT:8MSZQ7J4LG7WXMRT" & splash_form_created_date== "2024-10-29" ~ "unknown_1",
-                system_device_id=="COLLECT:8MSZQ7J4LG7WXMRT" & splash_form_created_date== "2024-10-30" ~ "unknown_2",
+                system_device_id=="COLLECT:8MSZQ7J4LG7WXMRT" & splash_form_created_date== "2024-10-29" ~ "004_JUHARA_ABDI",
+                system_device_id=="COLLECT:8MSZQ7J4LG7WXMRT" & splash_form_created_date== "2024-10-30" ~ "018_HAWWAA_ABDURAMAAN",
                 TRUE ~ person_location_cluster
               ),
     person_location_cluster = as.factor(person_location_cluster)
