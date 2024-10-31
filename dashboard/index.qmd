@@ -192,6 +192,21 @@ df<-df %>%
       case_when(
                 system_device_id=="COLLECT:8MSZQ7J4LG7WXMRT" & splash_form_created_date== "2024-10-29" ~ "004_JUHARA_ABDI",
                 system_device_id=="COLLECT:8MSZQ7J4LG7WXMRT" & splash_form_created_date== "2024-10-30" ~ "018_HAWWAA_ABDURAMAAN",
+                id=="UUID:25F88C3A-4810-4D72-A227-B1DC53B98399" ~ "011_XAYYIBO_MUMMAD",
+                id=="UUID:D8E59CBB-0A51-4954-A757-10BB9C0D4B3A" ~ "996_ALIA_ZIYAD",
+                id=="UUID:92238D17-10C0-4462-BB57-E71017EA971C" ~ "996_ALIA_ZIYAD",
+                id=="UUID:FFCB2FE0-F4E9-4C32-AAE6-605A9CB2B2C4" ~ "996_ALIA_ZIYAD",                
+                id=="UUID:2560EE44-0A95-4BF0-B595-27DAC8FA0A03" ~ "996_ALIA_ZIYAD",
+                id=="UUID:470BB02F-28B2-4279-8135-AD14480F4D25" ~ "996_ALIA_ZIYAD",
+                id=="UUID:95548195-2FC6-424A-83E1-50D994EE2982" ~ "996_ALIA_ZIYAD",
+                id=="UUID:0917C63E-E268-42FC-98FA-AE647BF66F8A" ~ "996_ALIA_ZIYAD",
+                id=="UUID:09550A71-E476-48A2-9C97-54EB05240E08" ~ "010_SAARAA_MUMMAD",
+                id=="UUID:F8AE1326-0638-41F8-99A8-C125857A2CB1" ~ "010_SAARAA_MUMMAD",
+                id=="UUID:8F10D327-95BE-4D3F-9748-2FDCA5F8498E" ~ "010_SAARAA_MUMMAD",
+                id=="UUID:3CBBB18B-63D7-42B6-B67E-00A8E3863493" ~ "014_FAAXUMAA_AHAMAD",
+                id=="UUID:3448A56C-CEA6-4467-A967-DE0A5B6E9C31" ~ "014_FAAXUMAA_AHAMAD",
+                id=="UUID:0BD15ED0-43D0-4FC3-B90C-3934D54D9467" ~ "004_JUHARA_ABDI",
+
                 TRUE ~ person_location_cluster
               ),
     person_location_cluster = as.factor(person_location_cluster)
