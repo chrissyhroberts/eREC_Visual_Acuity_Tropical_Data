@@ -329,8 +329,7 @@ custom_jitter <- function(x, amount) {
   x + runif(length(x), min = -amount, max = amount)
 }
 
-df <- df %>% filter(person_location_cluster!="",
-                    system_device_id!="COLLECT:8MSZQ7J4LG7WXMRT") %>% 
+df <- df %>% filter(person_location_cluster!="") %>% 
  mutate(
   jittered_longitude = custom_jitter(location_geolocation_longitude, amount = 0.0003),
   jittered_latitude =custom_jitter(location_geolocation_latitude, amount = 0.0003)
